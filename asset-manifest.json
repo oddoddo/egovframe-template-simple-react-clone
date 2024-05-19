@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/egovframe-template-simple-react-clone/static/css/main.37a1cf66.css",
+    "main.js": "/egovframe-template-simple-react-clone/static/js/main.d3824a42.js",
+    "static/media/bg_ds_t2.png": "/egovframe-template-simple-react-clone/static/media/bg_ds_t2.58237ebb555d4247052c.png",
+    "index.html": "/egovframe-template-simple-react-clone/index.html",
+    "main.37a1cf66.css.map": "/egovframe-template-simple-react-clone/static/css/main.37a1cf66.css.map",
+    "main.d3824a42.js.map": "/egovframe-template-simple-react-clone/static/js/main.d3824a42.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.37a1cf66.css",
+    "static/js/main.d3824a42.js"
+  ]
+}
