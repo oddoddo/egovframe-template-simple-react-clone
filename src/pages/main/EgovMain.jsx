@@ -1,94 +1,73 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import * as EgovNet from '../../api/egovFetch' // 상대 경로로 수정
-import URL from '../../constants/url' // 상대 경로로 수정
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+// import * as EgovNet from '../../api/egovFetch'; // 상대 경로로 수정
+import URL from '../../constants/url'; // 상대 경로로 수정
+// import { set } from 'msw/lib/types/context'
 
 function EgovMain(props) {
-    console.group('EgovMain')
-    console.log('[Start] EgovMain ------------------------------')
-    console.log('EgovMain [props] : ', props)
+    console.group('EgovMain');
+    console.log('[Start] EgovMain ------------------------------');
+    console.log('EgovMain [props] : ', props);
 
-    const location = useLocation()
-    console.log('EgovMain [location] : ', location)
+    const location = useLocation();
+    console.log('EgovMain [location] : ', location);
 
-    const [noticeBoard, setNoticeBoard] = useState()
-    const [gallaryBoard, setGallaryBoard] = useState()
-    const [noticeListTag, setNoticeListTag] = useState()
-    const [gallaryListTag, setGallaryListTag] = useState()
+    const [noticeListTag, setNoticeListTag] = useState();
+    const [gallaryListTag, setGallaryListTag] = useState();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // 공지사항, 갤러리 목록 조회
     const retrieveList = useCallback(() => {
-        const retrieveListURL = '/mainPage'
-        const requestOptions = {
-            method: 'GET',
-            // headers 속성 추가
-            headers: {
-                'Content-type': 'application/json', // application/json으로 수정
-            },
-        }
+        fetch('/mainPage') // mainPage로 요청을 보냅니다.
+            .then((res) => res.json()) // 응답을 json 형태로 변환합니다.
+            .then((data) => {
+                const notiList = data.result.notiList || []; // 공지사항 리스트
+                const galList = data.result.galList || []; // 갤러리 리스트
 
-        // Fetch 호출을 통한 데이터 조회
-        // Fetch 문법 : EgovNet.requestFetch(url, options, successCallback, errorCallback)
-        EgovNet.requestFetch(
-            retrieveListURL,
-            requestOptions,
-            (resp) => {
-                // resp : { result: { notiList: [], galList: [] } }
+                const mutNotiListTag = notiList.length
+                    ? notiList.map((item) => (
+                          <li key={item.nttId}>
+                              <Link
+                                  to={{ pathname: URL.INFORM_NOTICE_DETAIL }}
+                                  state={{ nttId: item.nttId, bbsId: item.bbsId }}
+                              >
+                                  {item.nttSj}
+                                  <span>{item.frstRegisterPnttm}</span>
+                              </Link>
+                          </li>
+                      ))
+                    : [<li key="0">검색된 결과가 없습니다.</li>];
 
-                setNoticeBoard(resp.result.notiList)
-                setGallaryBoard(resp.result.galList)
+                const mutGallaryListTag = galList.length
+                    ? galList.map((item) => (
+                          <li key={item.nttId}>
+                              <Link
+                                  to={{ pathname: URL.INFORM_GALLERY_DETAIL }}
+                                  state={{ nttId: item.nttId, bbsId: item.bbsId }}
+                              >
+                                  {item.nttSj}
+                                  <span>{item.frstRegisterPnttm}</span>
+                              </Link>
+                          </li>
+                      ))
+                    : [<li key="0">검색된 결과가 없습니다.</li>];
 
-                let mutNotiListTag = []
-                mutNotiListTag.push(<li key="0">검색된 결과가 없습니다.</li>)
-
-                resp.result.notiList.forEach(function (item, index) {
-                    if (index === 0) mutNotiListTag = [] // 초기화
-                    mutNotiListTag.push(
-                        <li key={item.nttId}>
-                            <Link
-                                to={{ pathname: URL.INFORM_NOTICE_DETAIL }}
-                                state={{ nttId: item.nttId, bbsId: item.bbsId }}
-                            >
-                                {item.nttSj}
-                                <span>{item.frstRegisterPnttm}</span>
-                            </Link>
-                        </li>,
-                    )
-                })
-                setNoticeListTag(mutNotiListTag)
-
-                let mutGallaryListTag = [] // 갤러리 목록 태그
-                mutGallaryListTag.push(<li key="0">검색된 결과가 없습니다.</li>) // 게시판 목록 초기값
-
-                // 갤러리 항목 구성
-                resp.result.galList.forEach(function (item, index) {
-                    if (index === 0) mutGallaryListTag = [] // 목록 초기화
-                    mutGallaryListTag.push(
-                        <li key={item.nttId}>
-                            <Link
-                                to={{ pathname: URL.INFORM_GALLERY_DETAIL }}
-                                state={{
-                                    nttId: item.nttId,
-                                    bbsId: item.bbsId,
-                                }}
-                            >
-                                {item.nttSj}
-                                <span>{item.frstRegisterPnttm}</span>
-                            </Link>
-                        </li>,
-                    )
-                })
-                setGallaryListTag(mutGallaryListTag)
-            },
-            (resp) => {
-                console.error('EgovMain [retrieveList] error : ', resp)
-            },
-        )
-    }, [])
+                setNoticeListTag(mutNotiListTag);
+                setGallaryListTag(mutGallaryListTag);
+                setLoading(false);
+            })
+            .catch((err) => {
+                setError(err);
+                setLoading(false);
+            });
+    }, []);
 
     useEffect(() => {
-        retrieveList()
-    }, [retrieveList])
+        retrieveList();
+    }, [retrieveList]);
+
+    if (loading) return <div>로딩 중...</div>;
+    if (error) return <div>오류가 발생했습니다: {error.message}</div>;
 
     return (
         <div className="container P_MAIN">
@@ -207,7 +186,7 @@ function EgovMain(props) {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-export default EgovMain
+export default EgovMain;
